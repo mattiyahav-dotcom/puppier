@@ -4,3 +4,4 @@ dist/
 .claude/
 .netlify/
 *.local
+.env.local

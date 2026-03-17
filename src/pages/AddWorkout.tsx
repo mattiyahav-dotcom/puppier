@@ -1,49 +1,53 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle } from 'lucide-react'
-import { addWorkout } from '../lib/storage'
 import { generateId, todayISO } from '../lib/data'
 import { loadUser } from '../lib/storage'
+import { useWorkouts } from '../hooks/useWorkouts'
 import LiftInputGroup from '../components/LiftInputGroup'
 import type { UserRole } from '../types'
 
 export default function AddWorkout() {
   const navigate = useNavigate()
-  const [date, setDate] = useState(todayISO())
-  const [squatVol, setSquatVol]     = useState('1x5')
-  const [squatWt,  setSquatWt]      = useState('')
-  const [pressVol, setPressVol]     = useState('1x5')
-  const [pressWt,  setPressWt]      = useState('')
-  const [dlVol,    setDlVol]        = useState('1x5')
-  const [dlWt,     setDlWt]         = useState('')
-  const [saved,    setSaved]        = useState(false)
-  const [error,    setError]        = useState('')
+  const { add } = useWorkouts()
 
-  function handleSave() {
+  const [date,     setDate]     = useState(todayISO())
+  const [squatVol, setSquatVol] = useState('1x5')
+  const [squatWt,  setSquatWt]  = useState('')
+  const [pressVol, setPressVol] = useState('1x5')
+  const [pressWt,  setPressWt]  = useState('')
+  const [dlVol,    setDlVol]    = useState('1x5')
+  const [dlWt,     setDlWt]     = useState('')
+  const [saved,    setSaved]    = useState(false)
+  const [saving,   setSaving]   = useState(false)
+  const [error,    setError]    = useState('')
+
+  async function handleSave() {
     setError('')
     if (!date) { setError('Please select a date'); return }
 
-    const sqWt = squatWt ? parseFloat(squatWt) : null
-    const prWt = pressWt ? parseFloat(pressWt) : null
-    const dlWtN = dlWt ? parseFloat(dlWt)   : null
+    const sqWt  = squatWt ? parseFloat(squatWt) : null
+    const prWt  = pressWt ? parseFloat(pressWt) : null
+    const dlWtN = dlWt    ? parseFloat(dlWt)    : null
 
-    if (sqWt !== null && isNaN(sqWt)) { setError('Squat weight must be a number'); return }
-    if (prWt !== null && isNaN(prWt)) { setError('Press weight must be a number'); return }
+    if (sqWt  !== null && isNaN(sqWt))  { setError('Squat weight must be a number');    return }
+    if (prWt  !== null && isNaN(prWt))  { setError('Press weight must be a number');    return }
     if (dlWtN !== null && isNaN(dlWtN)) { setError('Deadlift weight must be a number'); return }
 
     const role = (loadUser() as UserRole) || 'athlete'
+    setSaving(true)
 
-    addWorkout({
-      id:              generateId(),
+    await add({
+      id:             generateId(),
       date,
-      squatVolume:     squatVol,
-      squatWeight:     sqWt,
-      pressVolume:     pressVol,
-      pressWeight:     prWt,
-      deadliftVolume:  dlVol,
-      deadliftWeight:  dlWtN,
-      createdBy:       role,
-      createdAt:       new Date().toISOString(),
+      squatVolume:    squatVol,
+      squatWeight:    sqWt,
+      pressVolume:    pressVol,
+      pressWeight:    prWt,
+      deadliftVolume: dlVol,
+      deadliftWeight: dlWtN,
+      createdBy:      role,
+      createdAt:      new Date().toISOString(),
     })
 
     setSaved(true)
@@ -74,9 +78,7 @@ export default function AddWorkout() {
         <LiftInputGroup lift="Deadlift" volume={dlVol}    weight={dlWt}    onVolumeChange={setDlVol}    onWeightChange={setDlWt}    />
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600 mb-4">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
       {saved ? (
         <div className="flex items-center gap-2 justify-center bg-green-50 border border-green-200 rounded-2xl py-3 text-green-700 text-sm font-medium">
@@ -86,9 +88,10 @@ export default function AddWorkout() {
       ) : (
         <button
           onClick={handleSave}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-2xl text-sm transition-colors"
+          disabled={saving}
+          className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white font-semibold py-3 rounded-2xl text-sm transition-colors"
         >
-          Save Workout
+          {saving ? 'Saving…' : 'Save Workout'}
         </button>
       )}
     </div>

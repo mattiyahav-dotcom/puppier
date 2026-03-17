@@ -1,9 +1,11 @@
 import { getProgressData, formatDateShort } from '../lib/data'
+import { useWorkouts } from '../hooks/useWorkouts'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
 import { TrendingUp } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
+import type { WorkoutEntry } from '../types'
 
 type Lift = 'squat' | 'press' | 'deadlift'
 
@@ -13,8 +15,12 @@ const LIFTS: { key: Lift; label: string; color: string }[] = [
   { key: 'deadlift', label: 'Deadlift', color: '#92400e' },
 ]
 
-function LiftChart({ liftKey, label, color }: { liftKey: Lift; label: string; color: string }) {
-  const raw = getProgressData(liftKey)
+function LiftChart({
+  liftKey, label, color, entries,
+}: {
+  liftKey: Lift; label: string; color: string; entries: WorkoutEntry[]
+}) {
+  const raw  = getProgressData(liftKey, entries)
   const data = raw.map(d => ({ date: formatDateShort(d.date), weight: d.weight }))
 
   if (data.length === 0) {
@@ -25,6 +31,11 @@ function LiftChart({ liftKey, label, color }: { liftKey: Lift; label: string; co
       </div>
     )
   }
+
+  // Tight Y-axis: min/max of actual data ± small padding
+  const weights = data.map(d => d.weight)
+  const minW = Math.floor(Math.min(...weights) - 5)
+  const maxW = Math.ceil(Math.max(...weights)  + 5)
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200 p-4 mb-4">
@@ -43,7 +54,7 @@ function LiftChart({ liftKey, label, color }: { liftKey: Lift; label: string; co
             tick={{ fontSize: 10, fill: '#a8a29e' }}
             axisLine={false}
             tickLine={false}
-            domain={['auto', 'auto']}
+            domain={[minW, maxW]}
           />
           <Tooltip
             contentStyle={{
@@ -70,14 +81,21 @@ function LiftChart({ liftKey, label, color }: { liftKey: Lift; label: string; co
 }
 
 export default function Progress() {
-  const hasAny = LIFTS.some(l => getProgressData(l.key).length > 0)
+  const { workouts, loading } = useWorkouts()
+  const hasAny = LIFTS.some(l => getProgressData(l.key, workouts).length > 0)
 
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
       <h1 className="text-xl font-bold text-stone-900 mb-1">Progress</h1>
       <p className="text-xs text-stone-500 mb-5">Charts include all N×5 entries — highest weight per date</p>
 
-      {!hasAny ? (
+      {loading ? (
+        <div className="flex flex-col gap-4">
+          {[0,1,2].map(i => (
+            <div key={i} className="bg-stone-100 animate-pulse rounded-2xl h-48" />
+          ))}
+        </div>
+      ) : !hasAny ? (
         <EmptyState
           icon={<TrendingUp size={22} />}
           title="No progress data yet"
@@ -85,7 +103,7 @@ export default function Progress() {
         />
       ) : (
         LIFTS.map(l => (
-          <LiftChart key={l.key} liftKey={l.key} label={l.label} color={l.color} />
+          <LiftChart key={l.key} liftKey={l.key} label={l.label} color={l.color} entries={workouts} />
         ))
       )}
     </div>

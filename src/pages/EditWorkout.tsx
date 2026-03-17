@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Trash2, CheckCircle } from 'lucide-react'
-import { loadWorkouts, updateWorkout, deleteWorkout } from '../lib/storage'
+import { useWorkouts } from '../hooks/useWorkouts'
 import LiftInputGroup from '../components/LiftInputGroup'
 import type { WorkoutEntry } from '../types'
 
 export default function EditWorkout() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { workouts, update, remove } = useWorkouts()
 
-  const [entry, setEntry] = useState<WorkoutEntry | null>(null)
+  const [entry,    setEntry]    = useState<WorkoutEntry | null>(null)
   const [date,     setDate]     = useState('')
   const [squatVol, setSquatVol] = useState('')
   const [squatWt,  setSquatWt]  = useState('')
@@ -18,11 +19,12 @@ export default function EditWorkout() {
   const [dlVol,    setDlVol]    = useState('')
   const [dlWt,     setDlWt]     = useState('')
   const [saved,    setSaved]    = useState(false)
+  const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
-    const found = loadWorkouts().find(e => e.id === id) || null
+    const found = workouts.find(e => e.id === id) ?? null
     if (found) {
       setEntry(found)
       setDate(found.date)
@@ -33,21 +35,22 @@ export default function EditWorkout() {
       setDlVol(found.deadliftVolume || '')
       setDlWt(found.deadliftWeight?.toString() || '')
     }
-  }, [id])
+  }, [id, workouts])
 
   if (!entry) {
     return <div className="px-4 py-10 text-center text-stone-500 text-sm">Entry not found</div>
   }
 
-  function handleSave() {
+  async function handleSave() {
     setError('')
     if (!date) { setError('Please select a date'); return }
 
-    const sqWt  = squatWt ? parseFloat(squatWt)  : null
-    const prWt  = pressWt ? parseFloat(pressWt)  : null
-    const dlWtN = dlWt    ? parseFloat(dlWt)      : null
+    const sqWt  = squatWt ? parseFloat(squatWt) : null
+    const prWt  = pressWt ? parseFloat(pressWt) : null
+    const dlWtN = dlWt    ? parseFloat(dlWt)    : null
 
-    updateWorkout({
+    setSaving(true)
+    await update({
       ...entry!,
       date,
       squatVolume:    squatVol,
@@ -62,8 +65,8 @@ export default function EditWorkout() {
     setTimeout(() => navigate('/app/history'), 1000)
   }
 
-  function handleDelete() {
-    deleteWorkout(entry!.id)
+  async function handleDelete() {
+    await remove(entry!.id)
     navigate('/app/history')
   }
 
@@ -107,9 +110,10 @@ export default function EditWorkout() {
       ) : (
         <button
           onClick={handleSave}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-2xl text-sm transition-colors"
+          disabled={saving}
+          className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white font-semibold py-3 rounded-2xl text-sm transition-colors"
         >
-          Save Changes
+          {saving ? 'Saving…' : 'Save Changes'}
         </button>
       )}
 

@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Plus, Dumbbell } from 'lucide-react'
 import { getLatestWorkout, getRecords, formatDate } from '../lib/data'
+import { useWorkouts } from '../hooks/useWorkouts'
 import PRCard from '../components/PRCard'
 import EmptyState from '../components/EmptyState'
 
 export default function Home() {
-  const latest  = getLatestWorkout()
-  const records = getRecords()
+  const { workouts, loading } = useWorkouts()
+  const latest  = getLatestWorkout(workouts)
+  const records = getRecords(workouts)
 
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
@@ -30,11 +32,19 @@ export default function Home() {
         <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
           Personal Records
         </h2>
-        <div className="grid grid-cols-3 gap-2">
-          <PRCard lift="Squat"    weight={records.squat}    />
-          <PRCard lift="Press"    weight={records.press}    />
-          <PRCard lift="Deadlift" weight={records.deadlift} />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-3 gap-2">
+            {[0,1,2].map(i => (
+              <div key={i} className="bg-stone-100 animate-pulse rounded-2xl h-20" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            <PRCard lift="Squat"    weight={records.squat}    />
+            <PRCard lift="Press"    weight={records.press}    />
+            <PRCard lift="Deadlift" weight={records.deadlift} />
+          </div>
+        )}
       </section>
 
       {/* Latest workout */}
@@ -42,7 +52,9 @@ export default function Home() {
         <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
           Latest Workout
         </h2>
-        {latest ? (
+        {loading ? (
+          <div className="bg-stone-100 animate-pulse rounded-2xl h-28" />
+        ) : latest ? (
           <div className="bg-white rounded-2xl border border-stone-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-semibold text-stone-900">{formatDate(latest.date)}</span>
@@ -62,7 +74,7 @@ export default function Home() {
                 <div key={label}>
                   <div className="text-xs text-stone-500 mb-0.5">{label}</div>
                   <div className="text-sm font-semibold text-stone-900">
-                    {wt !== null ? `${wt} kg` : '—'}
+                    {wt !== null && wt !== undefined ? `${wt} kg` : '—'}
                   </div>
                   {vol && <div className="text-xs text-stone-400">{vol}</div>}
                 </div>

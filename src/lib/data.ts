@@ -1,12 +1,12 @@
-// Business logic: 1x5 filtering, records, progress data
+// Business logic: N×5 filtering, records, progress data
+// All functions accept a WorkoutEntry[] so they work with any data source
+// (Supabase, localStorage cache, test data, etc.)
 
 import type { WorkoutEntry, LiftData, Records } from '../types'
-import { loadWorkouts } from './storage'
 
-// A "qualifying" entry has a volume of N sets × 5 reps, e.g. 1*5, 2*5, 3*5, 4*5, 1x5, 3x5 …
-function isOneByFive(volume: string | null | undefined): boolean {
+// A "qualifying" entry has a volume of N sets × 5 reps: 1*5, 2*5, 3*5, 3x5 …
+function isNByFive(volume: string | null | undefined): boolean {
   if (!volume) return false
-  // Match any "<number> * 5" or "<number> x 5" pattern (case-insensitive, optional spaces)
   return /^\d+\s*[x*]\s*5$/i.test(volume.trim())
 }
 
@@ -23,56 +23,46 @@ const LIFT_FIELDS: Record<Lift, LiftFields> = {
   deadlift: { volume: 'deadliftVolume', weight: 'deadliftWeight' },
 }
 
-// Returns 1x5-qualifying entries for a lift, grouped by date -> highest weight per date
-export function getProgressData(lift: Lift): LiftData[] {
-  const entries = loadWorkouts()
+// Returns N×5 qualifying entries for a lift, grouped by date → highest weight per date
+export function getProgressData(lift: Lift, entries: WorkoutEntry[]): LiftData[] {
   const { volume: vKey, weight: wKey } = LIFT_FIELDS[lift]
 
-  // Filter: volume must be 1x5 and weight must exist
   const qualifying = entries.filter(e => {
     const vol = e[vKey] as string
     const wt  = e[wKey] as number | null
-    return isOneByFive(vol) && wt !== null && wt > 0
+    return isNByFive(vol) && wt !== null && wt > 0
   })
 
-  // Group by date -> keep max weight
+  // Group by date → keep max weight
   const byDate: Record<string, number> = {}
   for (const e of qualifying) {
     const d = e.date
     const w = e[wKey] as number
-    if (!(d in byDate) || w > byDate[d]) {
-      byDate[d] = w
-    }
+    if (!(d in byDate) || w > byDate[d]) byDate[d] = w
   }
 
-  // Sort ascending by date
   return Object.entries(byDate)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, weight]) => ({ date, weight }))
 }
 
-// Personal records: highest weight from 1x5 entries
-export function getRecords(): Records {
-  const squat    = getProgressData('squat')
-  const press    = getProgressData('press')
-  const deadlift = getProgressData('deadlift')
-
+// All-time personal records (highest N×5 weight per lift)
+export function getRecords(entries: WorkoutEntry[]): Records {
   const max = (data: LiftData[]) =>
     data.length > 0 ? Math.max(...data.map(d => d.weight)) : null
 
   return {
-    squat:    max(squat),
-    press:    max(press),
-    deadlift: max(deadlift),
+    squat:    max(getProgressData('squat',    entries)),
+    press:    max(getProgressData('press',    entries)),
+    deadlift: max(getProgressData('deadlift', entries)),
   }
 }
 
-// Records for a specific year (1x5 qualifying entries only)
-export function getYearRecords(year: number): Records {
+// Records for a specific calendar year
+export function getYearRecords(year: number, entries: WorkoutEntry[]): Records {
   const prefix = `${year}-`
-
-  const filtered = (lift: Lift): LiftData[] =>
-    getProgressData(lift).filter(d => d.date.startsWith(prefix))
+  const filtered = (lift: Lift) =>
+    getProgressData(lift, entries).filter(d => d.date.startsWith(prefix))
 
   const max = (data: LiftData[]) =>
     data.length > 0 ? Math.max(...data.map(d => d.weight)) : null
@@ -84,23 +74,21 @@ export function getYearRecords(year: number): Records {
   }
 }
 
-// Date of a record value within a LiftData array
+// Date when a specific record weight was first achieved
 export function getRecordDate(data: LiftData[], value: number | null): string | null {
   if (value === null) return null
-  const entry = data.find(d => d.weight === value)
-  return entry ? entry.date : null
+  return data.find(d => d.weight === value)?.date ?? null
 }
 
-// Latest workout entry (most recent date)
-export function getLatestWorkout(): WorkoutEntry | null {
-  const all = loadWorkouts()
-  if (all.length === 0) return null
-  return all.slice().sort((a, b) => b.date.localeCompare(a.date))[0]
+// Latest entry by date
+export function getLatestWorkout(entries: WorkoutEntry[]): WorkoutEntry | null {
+  if (entries.length === 0) return null
+  return entries.slice().sort((a, b) => b.date.localeCompare(a.date))[0]
 }
 
-// All workouts sorted newest first (for history)
-export function getAllWorkoutsSorted(): WorkoutEntry[] {
-  return loadWorkouts().slice().sort((a, b) => b.date.localeCompare(a.date))
+// All entries sorted newest-first (for History)
+export function getAllWorkoutsSorted(entries: WorkoutEntry[]): WorkoutEntry[] {
+  return entries.slice().sort((a, b) => b.date.localeCompare(a.date))
 }
 
 // Unique ID generator
@@ -108,18 +96,15 @@ export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
-// Format date for display: "Mon, Jan 15 2024"
+// "Mon, Jan 15 2024"
 export function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')
   return d.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
   })
 }
 
-// Format date short: "Jan 15"
+// "Jan 15"
 export function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })

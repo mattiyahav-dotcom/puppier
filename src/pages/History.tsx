@@ -1,16 +1,24 @@
 import { Link } from 'react-router-dom'
 import { ChevronRight, Clock } from 'lucide-react'
 import { getAllWorkoutsSorted, formatDate } from '../lib/data'
+import { useWorkouts } from '../hooks/useWorkouts'
 import EmptyState from '../components/EmptyState'
 
 export default function History() {
-  const entries = getAllWorkoutsSorted()
+  const { workouts, loading } = useWorkouts()
+  const entries = getAllWorkoutsSorted(workouts)
 
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
       <h1 className="text-xl font-bold text-stone-900 mb-5">History</h1>
 
-      {entries.length === 0 ? (
+      {loading ? (
+        <div className="flex flex-col gap-2">
+          {[0,1,2,3].map(i => (
+            <div key={i} className="bg-stone-100 animate-pulse rounded-2xl h-20" />
+          ))}
+        </div>
+      ) : entries.length === 0 ? (
         <EmptyState
           icon={<Clock size={22} />}
           title="No workouts logged"
