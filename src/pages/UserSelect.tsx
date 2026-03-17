@@ -9,7 +9,7 @@ export default function UserSelect({ onSelect }: Props) {
     <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-stone-900 mb-2">Welcome to Puppier</h1>
+          <h1 className="text-2xl font-bold text-stone-900 mb-2">Welcome to Starting Strength</h1>
           <p className="text-sm text-stone-500">Choose your profile to continue</p>
         </div>
 
@@ -20,10 +20,10 @@ export default function UserSelect({ onSelect }: Props) {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-stone-100 group-hover:bg-amber-100 flex items-center justify-center transition-colors">
-                <span className="text-lg font-bold text-stone-600 group-hover:text-amber-700">A</span>
+                <span className="text-lg font-bold text-stone-600 group-hover:text-amber-700">M</span>
               </div>
               <div>
-                <div className="font-semibold text-stone-900 text-sm">Athlete</div>
+                <div className="font-semibold text-stone-900 text-sm">Matti</div>
                 <div className="text-xs text-stone-500 mt-0.5">Log and track your own workouts</div>
               </div>
             </div>
@@ -35,10 +35,10 @@ export default function UserSelect({ onSelect }: Props) {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-stone-100 group-hover:bg-amber-100 flex items-center justify-center transition-colors">
-                <span className="text-lg font-bold text-stone-600 group-hover:text-amber-700">I</span>
+                <span className="text-lg font-bold text-stone-600 group-hover:text-amber-700">Z</span>
               </div>
               <div>
-                <div className="font-semibold text-stone-900 text-sm">Instructor</div>
+                <div className="font-semibold text-stone-900 text-sm">Zohar</div>
                 <div className="text-xs text-stone-500 mt-0.5">Add and review athlete workouts</div>
               </div>
             </div>

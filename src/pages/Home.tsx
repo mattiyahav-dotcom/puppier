@@ -28,7 +28,7 @@ export default function Home() {
       {/* Personal Records */}
       <section className="mb-6">
         <h2 className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
-          Personal Records (1x5)
+          Personal Records
         </h2>
         <div className="grid grid-cols-3 gap-2">
           <PRCard lift="Squat"    weight={records.squat}    />

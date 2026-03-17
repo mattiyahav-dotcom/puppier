@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useUser } from './hooks/useUser'
-import Landing from './pages/Landing'
 import UserSelect from './pages/UserSelect'
 import AppShell from './components/AppShell'
 import Home from './pages/Home'
@@ -17,12 +16,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing / marketing page */}
-        <Route path="/" element={<Landing />} />
-
-        {/* User selection (login) */}
+        {/* User selection — root entry point */}
         <Route
-          path="/login"
+          path="/"
           element={
             role ? <Navigate to="/app" replace /> : <UserSelect onSelect={login} />
           }
@@ -45,7 +41,7 @@ export default function App() {
                 </Routes>
               </AppShell>
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />

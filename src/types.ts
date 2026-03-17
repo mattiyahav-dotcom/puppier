@@ -1,4 +1,4 @@
-// Core data types for Puppier
+// Core data types for Starting Strength
 
 export type LiftVolume = string // e.g. "1x5", "3x3", "5x5", "1x1"
 

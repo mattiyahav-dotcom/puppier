@@ -3,10 +3,11 @@
 import type { WorkoutEntry, LiftData, Records } from '../types'
 import { loadWorkouts } from './storage'
 
-// A "qualifying" entry has volume exactly "1x5" for that lift
+// A "qualifying" entry has a volume of N sets × 5 reps, e.g. 1*5, 2*5, 3*5, 4*5, 1x5, 3x5 …
 function isOneByFive(volume: string | null | undefined): boolean {
   if (!volume) return false
-  return volume.trim().toLowerCase() === '1x5'
+  // Match any "<number> * 5" or "<number> x 5" pattern (case-insensitive, optional spaces)
+  return /^\d+\s*[x*]\s*5$/i.test(volume.trim())
 }
 
 type Lift = 'squat' | 'press' | 'deadlift'
@@ -64,6 +65,30 @@ export function getRecords(): Records {
     press:    max(press),
     deadlift: max(deadlift),
   }
+}
+
+// Records for a specific year (1x5 qualifying entries only)
+export function getYearRecords(year: number): Records {
+  const prefix = `${year}-`
+
+  const filtered = (lift: Lift): LiftData[] =>
+    getProgressData(lift).filter(d => d.date.startsWith(prefix))
+
+  const max = (data: LiftData[]) =>
+    data.length > 0 ? Math.max(...data.map(d => d.weight)) : null
+
+  return {
+    squat:    max(filtered('squat')),
+    press:    max(filtered('press')),
+    deadlift: max(filtered('deadlift')),
+  }
+}
+
+// Date of a record value within a LiftData array
+export function getRecordDate(data: LiftData[], value: number | null): string | null {
+  if (value === null) return null
+  const entry = data.find(d => d.weight === value)
+  return entry ? entry.date : null
 }
 
 // Latest workout entry (most recent date)

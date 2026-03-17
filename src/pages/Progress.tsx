@@ -21,7 +21,7 @@ function LiftChart({ liftKey, label, color }: { liftKey: Lift; label: string; co
     return (
       <div className="bg-white rounded-2xl border border-stone-200 p-4 mb-4">
         <h3 className="text-sm font-semibold text-stone-900 mb-3">{label}</h3>
-        <p className="text-xs text-stone-400 text-center py-8">No 1x5 entries yet</p>
+        <p className="text-xs text-stone-400 text-center py-8">No qualifying entries yet</p>
       </div>
     )
   }
@@ -29,7 +29,7 @@ function LiftChart({ liftKey, label, color }: { liftKey: Lift; label: string; co
   return (
     <div className="bg-white rounded-2xl border border-stone-200 p-4 mb-4">
       <h3 className="text-sm font-semibold text-stone-900 mb-1">{label}</h3>
-      <p className="text-xs text-stone-400 mb-4">Weight progress · 1x5 entries only</p>
+      <p className="text-xs text-stone-400 mb-4">Weight progress · N×5 entries only</p>
       <ResponsiveContainer width="100%" height={160}>
         <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f4" />
@@ -75,13 +75,13 @@ export default function Progress() {
   return (
     <div className="px-4 py-5 max-w-lg mx-auto">
       <h1 className="text-xl font-bold text-stone-900 mb-1">Progress</h1>
-      <p className="text-xs text-stone-500 mb-5">Charts only include 1x5 qualifying entries, highest weight per date</p>
+      <p className="text-xs text-stone-500 mb-5">Charts include all N×5 entries — highest weight per date</p>
 
       {!hasAny ? (
         <EmptyState
           icon={<TrendingUp size={22} />}
           title="No progress data yet"
-          description="Log workouts with 1x5 volume to see your progress charts"
+          description="Log workouts with sets of 5 reps to see your progress charts"
         />
       ) : (
         LIFTS.map(l => (

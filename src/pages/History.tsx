@@ -56,7 +56,7 @@ export default function History() {
               </div>
               <div className="flex items-center gap-1 ml-3">
                 {entry.createdBy === 'instructor' && (
-                  <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-md mr-1">Coach</span>
+                  <span className="text-xs bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-md mr-1">Zohar</span>
                 )}
                 <ChevronRight size={16} className="text-stone-300" />
               </div>
