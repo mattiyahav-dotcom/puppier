@@ -1,0 +1,13 @@
+{
+  "name": "Puppier — Heavy Lifting Tracker",
+  "short_name": "Puppier",
+  "description": "Track your Squat, Press, and Deadlift progress",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    { "src": "/vite.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
